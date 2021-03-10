@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="todo.css"/>
+	</head>
+	<body>
+		<script src="js/自适应.js" type="text/javascript" charset="utf-8"></script>
+		<!-- TodoList网页需求
+<!-- 		 1.移动为主 pc端可用
+		 2.输入框：输入待办事项
+		 3.未完成列表：能够显示未完成内容，可对内容修改
+		 4.完成列表：能够显示完成内容-->
+		 
+<!--.main>(.header>((.logo{Todo}+input))+(.doing>(h3>(span.title{正在进行})+span.num)+.list))+(.done>(h3>(span.title{正在进行})+span.num+)+.list)) -->
+		<div class="main">
+			<div class="header">
+				<div class="logo">Todo</div>
+				<input type="text" id="input"  placeholder="请输入待办事项" />
+			</div>
+			<div class="doing todo">
+				<h2><span class="title">正在进行</span>
+				<span class="num1"> </span></h2>
+				<div class="list">
+					<div class="todoItem">
+						<input type="checkbox" />
+						<div class="content"> [举例]今晚吃饭</div>
+						<div class="del">删除</div>
+					</div>
+				</div>
+			</div>
+			<div class="done todo">
+				<h2><span class="title">已完成</span><span class="num2"></span></h2>
+				<div class="list">
+					<div class="todoItem">
+						<input type="checkbox" checked="checked" />
+						<div class="content"> [举例]今晚吃饭</div>
+						<div class="del">删除</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			if(localStorage.todoList == undefined){
+				var todoList = []
+				
+			}else{
+				//将json格式字符串转为对象
+				var todoList = JSON.parse(localStorage.todoList)
+			}
+			
+			//设定一个全局变量 将待办事项保存到找个变量内
+			
+			//获取doingList 对象
+			var doingListDiv = document.querySelector(".doing .list")
+			//获取doneList 对象
+			var doneListDiv = document.querySelector(".done .list")
+			//获取main
+			var mainDiv =  document.querySelector(".main")
+			
+			render(todoList);
+			countNode()
+			// document.getElementsByClassName("num1").innerHTML = todoList.length
+			
+			//获取输入框对象
+			var inputDom = document.querySelector("#input")
+			//监听输入案件事件
+			inputDom.onkeydown = function(e){
+				//当按下回车键，获取输入框内容，并且生成未完成列表
+				if(e.key =="Enter" && this.value !==""){
+					console.log(e)
+					var value = inputDom.value;
+					var objItem = {
+						content : value,
+						isDone : false
+					}
+					todoList.push(objItem)
+					console.log(todoList)
+				
+					render(todoList)
+					this.value = ""
+					countNode()
+				}
+			}
+			
+			//渲染
+			function render(todoList){
+				//将对象转为json格式的字符串
+				localStorage.todoList = JSON.stringify(todoList);
+				//每一次渲染前 清空内容
+				doingListDiv.innerHTML = ""
+				doneListDiv.innerHTML = ""
+				
+				todoList.forEach(function(item,index){
+					//创建一个todoItem
+					var todoItem = document.createElement("div")
+					todoItem.className = "todoItem";
+				
+					if(item.isDone){
+						todoItem.innerHTML = `
+						<input type="checkbox" checked= "checked" data-index="${index}"/>
+						<div class="content"> `+item.content+`</div>
+						<div class="del" data-index="${index}">删除</div>
+						`
+						doneListDiv.appendChild(todoItem)
+						
+					}else{
+						todoItem.innerHTML = `
+						<input type="checkbox" data-index="${index}"/>
+						<div class="content"> `+item.content+`</div>
+						<div class="del" data-index="${index}">删除</div>
+						`
+						doingListDiv.appendChild(todoItem)
+					}
+				})
+			}
+			
+			doingListDiv.onchange = function(e){
+				// console.log(e)
+				//通过事件对象找到dom对象，获取索引值
+				var index = parseInt(e.target.dataset.index);
+				//console.log(index)
+				todoList[index].isDone = true;
+				render(todoList)
+				countNode()
+			}
+			doneListDiv.onchange = function(e){
+				// console.log(e)
+				//通过事件对象找到dom对象，获取索引值
+				var index = parseInt(e.target.dataset.index);
+				//console.log(index)
+				todoList[index].isDone = false;
+				render(todoList)
+				countNode()
+			}
+			
+			mainDiv.onclick = function(e){
+				if(e.target.className == "del"){
+					// console.log(e)
+					var index = parseInt(e.target.dataset.index);
+					todoList.splice(index,1);
+					render(todoList)
+					countNode()
+				}
+				
+			}
+			
+			function countNode(){
+				var doingNum = doingListDiv.childElementCount;
+				document.querySelector(".doing h2 .num1").innerHTML = doingNum
+				
+				var doneNum = doneListDiv.childElementCount;
+				document.querySelector(".done h2 .num2").innerHTML = doneNum
+		
+			}
+		</script>
+	</body>
+</html>
